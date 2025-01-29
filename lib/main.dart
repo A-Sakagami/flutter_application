@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import "pages/index.dart";
+import "pages/admin.dart";
+import "pages/login.dart";
 
 void main() {
   runApp(const MyApp());
