@@ -9,7 +9,10 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text("My App"),
+      title: Text(
+        ModalRoute.of(context)?.settings.arguments as String? ?? "Workflow Tool",
+        style: const TextStyle(color: Colors.black, fontSize: 24),
+      ),
       centerTitle: true,
       backgroundColor: Colors.white,
       shadowColor: Colors.white30,
@@ -18,7 +21,12 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              Scaffold.of(context).openEndDrawer(); // endDrawer を開く
+              final scaffoldState = Scaffold.maybeOf(context);
+              if (scaffoldState != null && scaffoldState.hasEndDrawer) {
+                scaffoldState.openEndDrawer();
+              } else {
+                debugPrint("Scaffold の endDrawer が見つかりませんでした");
+              }
             },
           ),
         ),

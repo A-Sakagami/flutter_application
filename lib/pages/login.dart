@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_header.dart';
+import '../widgets/custom_drawer.dart';
+import '../widgets/custom_footer.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,14 +24,13 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
+      appBar: const CustomHeader(),
+      endDrawer: const CustomDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: <Widget>[
               TextFormField(
                 controller: _emailController,
@@ -53,6 +55,10 @@ class LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {
                     // Perform login action
@@ -64,6 +70,7 @@ class LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
+      bottomNavigationBar: const CustomFooter(),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_header.dart';
+import '../widgets/custom_drawer.dart';
+import '../widgets/custom_footer.dart';
 
 class WorkflowToolScreen extends StatefulWidget {
   const WorkflowToolScreen({super.key});
@@ -10,8 +12,19 @@ class WorkflowToolScreen extends StatefulWidget {
 
 class WorkflowToolScreenState extends State<WorkflowToolScreen> {
   bool isLoggedIn = false;
+  bool isAdmin = false;
   final TextEditingController _postController = TextEditingController();
 
+  /// ホーム画面制御
+  void toggleHome() {
+    if (!isLoggedIn) {
+      Navigator.pushNamed(context, '/');
+    } else if (isAdmin) {
+      Navigator.pushNamed(context, '/admin');
+    } else {
+      Navigator.pushNamed(context, '/index');
+    }
+  }
 
   /// Aboutページへ遷移
   void toggleAbout() {
@@ -32,30 +45,7 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomHeader(),
-      endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.white30),
-              child: Text('メニュー', style: TextStyle(color: Colors.white, fontSize: 24)),
-            ),
-            ListTile(title: Text('Home')),
-            ListTile(
-              title: Text('About'),
-              onTap: toggleAbout,
-            ),
-            ListTile(
-              title: Text('Contact'),
-              onTap: toggleContact,
-            ),
-            ListTile(
-              title: Text('Login'),
-              onTap: toggleLogin,
-            ),
-          ],
-        ),
-      ),
+      endDrawer: const CustomDrawer(),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
@@ -65,16 +55,25 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
             SizedBox(height: 8),
             Text('ようこそ！このアプリはFlutterで作られています。'),
             SizedBox(height: 8),
-            Column(
-              children: [
-                Text('• 高速で軽量'),
-                Text('• シンプルな構成'),
-                Text('• 柔軟なカスタマイズ'),
-              ],
+            Align(
+              /// 左揃え
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('• 高速で軽量'),
+                  Text('• シンプルな構成'),
+                  Text('• 柔軟なカスタマイズ'),
+                ],
+              ),
             ),
             SizedBox(height: 16),
             if (!isLoggedIn)
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: toggleLogin,
                 child: Text('ログイン'),
               ),
@@ -87,12 +86,9 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text('© 2024 My Flutter App', textAlign: TextAlign.center),
-        ),
-      ),
+      bottomNavigationBar: const CustomFooter(),
     );
   }
+
+  
 }
