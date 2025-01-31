@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../storages/storage_service.dart';
+import '../storages/user_data.dart';
+import '../storages/text_data.dart';
 import '../widgets/custom_header.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/custom_footer.dart';
@@ -11,34 +14,35 @@ class WorkflowToolScreen extends StatefulWidget {
 }
 
 class WorkflowToolScreenState extends State<WorkflowToolScreen> {
-  bool isLoggedIn = false;
-  bool isAdmin = false;
-  final TextEditingController _postController = TextEditingController();
+  UserData? _currentUser;
+  List<TextData> _texts = [];
+  final TextEditingController _textController = TextEditingController();
 
-  /// ホーム画面制御
-  void toggleHome() {
-    if (!isLoggedIn) {
-      Navigator.pushNamed(context, '/');
-    } else if (isAdmin) {
-      Navigator.pushNamed(context, '/admin');
-    } else {
-      Navigator.pushNamed(context, '/index');
+  @override
+  void initState() {
+    super.initState();
+    _loadUserAndData();
+  }
+
+  Future<void> _loadUserAndData() async {
+    final user = await StorageService.getCurrentUser();
+    final textList = await StorageService.getAllTexts();
+    setState(() {
+      _currentUser = user;
+      _texts = textList;
+    });
+  }
+
+  Future<void> _submitText() async {
+    if (_textController.text.isNotEmpty) {
+      await StorageService.saveText(TextData(
+        text: _textController.text,
+        approved: false,
+        denyed: false,
+      ));
+      _textController.clear();
+      await _loadUserAndData(); // リストを更新
     }
-  }
-
-  /// Aboutページへ遷移
-  void toggleAbout() {
-    Navigator.pushNamed(context, '/about');
-  }
-
-  /// Contactページへ遷移
-  void toggleContact() {
-    Navigator.pushNamed(context, '/contact');
-  }
-
-  /// ログインページへ遷移
-  void toggleLogin() {
-    Navigator.pushNamed(context, '/login');
   }
 
   @override
@@ -46,49 +50,108 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
     return Scaffold(
       appBar: const CustomHeader(),
       endDrawer: const CustomDrawer(),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ワークフローツール', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('ようこそ！このアプリはFlutterで作られています。'),
-            SizedBox(height: 8),
-            Align(
-              /// 左揃え
-              alignment: Alignment.centerLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('• 高速で軽量'),
-                  Text('• シンプルな構成'),
-                  Text('• 柔軟なカスタマイズ'),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            if (!isLoggedIn)
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: toggleLogin,
-                child: Text('ログイン'),
-              ),
-            if (isLoggedIn) ...[
-              Text('下のテキストエリアに文字を入力して、送信してください。'),
-              TextField(controller: _postController, decoration: InputDecoration(hintText: 'ここに入力してください...')),
-              SizedBox(height: 8),
-              ElevatedButton(onPressed: () {}, child: Text('送信')),
-            ],
-          ],
-        ),
-      ),
+      body: _currentUser == null ? _buildGuestView() : _buildUserView(),
       bottomNavigationBar: const CustomFooter(),
     );
   }
 
-  
+
+  Widget _buildGuestView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            'ワークフローツール',
+            style: const TextStyle(fontSize: 24, fontWeight:FontWeight.bold),
+          ),
+          const SizedBox(height: 20), 
+          const Text(
+            'ログインしてください。',
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 20), // テキストとボタンの間にスペースを追加
+          ElevatedButton(
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue, // ボタンの背景色を青色に設定
+              shadowColor: Colors.blueAccent,
+            ),
+            child: const Text('ログイン', style: TextStyle(color: Colors.white),),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserView() {
+    if (_currentUser!.username != "user") return const SizedBox();
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'ワークフローツール',
+              style: const TextStyle(
+                fontSize: 24, 
+                fontWeight:FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '下のテキストエリアに文字を入力して、送信してください。',
+              ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _textController,
+            decoration: const InputDecoration(
+              labelText: 'テキストを入力',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _submitText,
+              child: const Text('送信'),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Expanded(child: _buildTextList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextList() {
+    return ListView.builder(
+      itemCount: _texts.length,
+      itemBuilder: (context, index) {
+        final text = _texts[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          child: ListTile(
+            title: Text(
+              text.text ?? '',
+            ),
+            tileColor: text.approved ?? true ? Colors.lightGreen
+             : (text.denyed?? true ? Colors.redAccent : Colors.lightBlue), 
+          ),
+        );
+      },
+    );
+  }
 }

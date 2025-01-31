@@ -4,9 +4,13 @@ import "pages/admin.dart";
 import "pages/login.dart";
 import "pages/about.dart";
 import "pages/contact.dart";
+import '../storages/storage_service.dart';
 
 
-void main() {
+void main() async{
+  // ストレージを初期化
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
   runApp(const MyApp());
 }
 

@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application/storages/storage_service.dart';
+// セッション管理ライブラリhive
+import 'package:hive_flutter/hive_flutter.dart';
+import '../storages/user_data.dart';
+// プリセットウィジェット
 import '../widgets/custom_header.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/custom_footer.dart';
@@ -16,10 +21,69 @@ class LoginPage extends StatefulWidget {
 ///
 class LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
+  
+  // UserDataのフィールド
+  String? name;
+  String? password;
+  bool isAdmin = false;
+  bool isLoggedIn = false;
+
+  // 保存済みのデータ
+  List<UserData> users = [];
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   LoginPageState();
+
+@override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final loadedUsers = await StorageService.getAllUsers();
+    setState(() {
+      users = loadedUsers;
+    });
+  }
+
+  /// ログイン情報をストレージに保存する
+  Future<void> _login() async {
+    final username = _usernameController.text;
+    final password = _passwordController.text;
+
+    if (!mounted) return;
+
+    var userBox = await Hive.openBox<UserData>('userBox');
+    UserData userData;
+
+    if (username == "admin" && password == "admin123") {
+      userData = UserData()
+        ..username = username
+        ..password = password
+        ..isLoggedIn = true
+        ..isAdmin = true;
+      await userBox.put('userData', userData);
+      await _loadData(); // リストを更新
+      if (mounted) Navigator.pushReplacementNamed(context, '/admin');
+    } 
+    else if (username == "user" && password == "user123") {
+      userData = UserData()
+        ..username = username
+        ..password = password
+        ..isLoggedIn = true
+        ..isAdmin = false;
+      await userBox.put('userData', userData);
+      await _loadData(); // リストを更新
+      if (mounted) Navigator.pushReplacementNamed(context, '/');
+    }
+    else if (username.isNotEmpty && password.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ログイン情報が正しくありません')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +97,8 @@ class LoginPageState extends State<LoginPage> {
           child: ListView(
             children: <Widget>[
               TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                controller: _usernameController,
+                decoration: InputDecoration(labelText: 'ユーザー名：'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'メールアドレスを入力してください。';
@@ -44,7 +108,7 @@ class LoginPageState extends State<LoginPage> {
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(labelText: 'パスワード：'),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -60,11 +124,11 @@ class LoginPageState extends State<LoginPage> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    // Perform login action
+                  if (_formKey.currentState!.validate()) {
+                     _login();
                   }
                 },
-                child: Text('Login'),
+                child: Text('ログイン'),
               ),
             ],
           ),
