@@ -45,7 +45,31 @@ class StorageService {
     return box.get('userData');
   }
 
+  // ログアウトの操作
+  static Future<void> logout() async {
+    final box = await Hive.openBox<UserData>(userBox);
+    await box.delete('userData');
+  }
+
   // TextData関連の操作
+  // 既存のデータと新しいデータをマージして保存する想定
+  static Future<void> saveAllTexts(List<TextData> textList) async {
+    final box = await Hive.openBox<TextData>(textBox);
+    final existingTexts = box.values.toList();
+
+    for (var newText in textList) {
+      int index = existingTexts.indexWhere((text) => text.id == newText.id);
+      if (index != -1) {
+        existingTexts[index] = newText; // 上書き保存
+      } else {
+        existingTexts.add(newText); // 新しいデータを追加
+      }
+    }
+
+    await box.clear();
+    await box.addAll(existingTexts);
+  }
+  
   static Future<void> saveText(TextData text) async {
     final box = await Hive.openBox<TextData>(textBox);
     await box.add(text);
@@ -56,14 +80,28 @@ class StorageService {
     return box.values.toList();
   }
 
-  static Future<void> updateText(int index, TextData text) async {
-    final box = await Hive.openBox<TextData>(textBox);
-    await box.putAt(index, text);
+  static Future<void> updateText(TextData textData) async {
+    // 既存のリストを取得
+    List<TextData> textList = await getAllTexts();
+    
+    // 同じ ID のデータを検索し更新
+    int index = textList.indexWhere((t) => t.id == textData.id);
+    if (index > -1) {
+      textList[index] = textData; // 上書き保存
+    }
+
+    // 更新したリストを保存
+    await saveAllTexts(textList);
   }
 
-  static Future<void> deleteText(int index) async {
+  // idを指定して消去
+  static Future<void> deleteTextById(int id) async {
     final box = await Hive.openBox<TextData>(textBox);
-    await box.deleteAt(index);
+    final textList = box.values.toList();
+    final index = textList.indexWhere((text) => text.id == id);
+    if (index != -1) {
+      await box.deleteAt(index);
+    }
   }
 
   // ボックスのクリア

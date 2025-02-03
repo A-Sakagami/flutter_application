@@ -35,10 +35,13 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
 
   Future<void> _submitText() async {
     if (_textController.text.isNotEmpty) {
+      // 新しいIDを生成（既存の最大IDに1を加える）
+      final newId = (_texts.isNotEmpty ? _texts.map((e) => e.id!).reduce((a, b) => a > b ? a : b) : 0) + 1;
       await StorageService.saveText(TextData(
         text: _textController.text,
         approved: false,
         denyed: false,
+        id: newId, // 新しいIDを設定
       ));
       _textController.clear();
       await _loadUserAndData(); // リストを更新
@@ -145,11 +148,61 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
           margin: const EdgeInsets.symmetric(vertical: 4),
           child: ListTile(
             title: Text(
-              text.text ?? '',
+              // 否認された場合、テキストで再投稿を促す
+                text.safeDenyed ? '否認されました。再投稿してください。\n${text.text}' : text.text ?? '',
             ),
-            tileColor: text.approved ?? true ? Colors.lightGreen
-             : (text.denyed?? true ? Colors.redAccent : Colors.lightBlue), 
+            textColor: text.safeApproved ? Colors.black : Colors.white,
+            tileColor: text.safeApproved ? Colors.green
+             : (text.safeDenyed ? Colors.redAccent : Colors.lightBlue), 
+             // 否認済みならタップで編集
+            onTap: text.safeDenyed ? () => _editDeniedText(context, text) : null, 
           ),
+        );
+      },
+    );
+  }
+  void _editDeniedText(BuildContext context, TextData textData) {
+    TextEditingController editController =
+        TextEditingController(text: textData.text);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('再編集'),
+          content: TextField(
+            controller: editController,
+            decoration: const InputDecoration(
+              labelText: '修正するテキストを入力',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final updatedText = editController.text.trim();
+                if (updatedText.isNotEmpty) {
+                  // 既存データを更新（id 付きのデータを保存）
+                  final updatedTextData = TextData(
+                    id: textData.id, // 必ず元のIDを維持
+                    text: updatedText,
+                    approved: false, // 再投稿時は未承認状態に戻す
+                    denyed: false, // 否認状態を解除
+                  );
+
+                  await StorageService.updateText(updatedTextData); // 更新処理を呼び出す
+                  await _loadUserAndData(); // 更新後のデータをロード
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
+              },
+              child: const Text('再投稿'),
+            ),
+          ],
         );
       },
     );

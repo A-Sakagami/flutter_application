@@ -13,19 +13,24 @@ class TextData extends HiveObject {
   @HiveField(2)
   bool? denyed;
 
-  TextData({this.text, this.approved, this.denyed});
+  @HiveField(3)
+  int? id;
+
+  TextData({this.text, this.approved, this.denyed, this.id});
   
   // バリデーションメソッド
   bool isValid() {
     return text != null
     && text!.isNotEmpty
     && approved != null 
-    && denyed != null;
+    && denyed != null
+    && id != null;
   }
 
   // null safeなgetter
   String get safeText => text ?? '';
   bool get safeApproved => approved ?? false;
   bool get safeDenyed => denyed ?? false;
+  int get safeId => id ?? -1;
 
 }

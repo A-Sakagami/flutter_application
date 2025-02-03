@@ -24,6 +24,7 @@ class AdminPageState extends State<AdminPage> {
   
   // TextDataのフィールド
   String? text;
+  int? id;
   bool approved = false;
   bool denyed = false;
 
@@ -65,6 +66,7 @@ class AdminPageState extends State<AdminPage> {
         text: text,
         approved: approved,
         denyed: denyed,
+        id: id,
       );
       await StorageService.saveText(textData);
       await _loadData(); // リストを更新
@@ -125,6 +127,10 @@ class AdminPageState extends State<AdminPage> {
                 value: denyed,
                 onChanged: (value) => setState(() => denyed = value ?? false),
               ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'ID'),
+                onChanged: (value) => setState(() => id = int.tryParse(value) ?? id),
+              ),
               ElevatedButton(
                 onPressed: _saveTextData,
                 child: Text('Save Text Data'),
@@ -164,11 +170,11 @@ class AdminPageState extends State<AdminPage> {
                   final textData = texts[index];
                   return ListTile(
                     title: Text(textData.text ?? 'No text'),
-                    subtitle: Text('Approved: ${textData.approved}, Denied: ${textData.denyed}'),
+                    subtitle: Text('ID: ${textData.id}, Approved: ${textData.approved}, Denied: ${textData.denyed}'),
                     trailing: IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () async {
-                        await StorageService.deleteText(index);
+                        await StorageService.deleteTextById(index);
                         await _loadData();
                       },
                     ),
