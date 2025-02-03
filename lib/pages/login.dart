@@ -95,9 +95,13 @@ class LoginPageState extends State<LoginPage> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              TextFormField(
+            child: Center(
+            child: SizedBox(
+              width: 400,
+              child: ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                TextFormField(
                 controller: _usernameController,
                 decoration: const InputDecoration(
                   labelText: 'ユーザー名',
@@ -105,12 +109,13 @@ class LoginPageState extends State<LoginPage> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'メールアドレスを入力してください。';
+                  return 'メールアドレスを入力してください。';
                   }
                   return null;
                 },
-              ),
-              TextFormField(
+                ),
+                SizedBox(height: 20),
+                TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
                   labelText: 'パスワード',
@@ -119,26 +124,28 @@ class LoginPageState extends State<LoginPage> {
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'パスワードを入力してください。';
+                  return 'パスワードを入力してください。';
                   }
                   return null;
                 },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                     _login();
+                  _login();
                   }
                 },
                 child: Text('ログイン'),
+                ),
+              ],
               ),
-            ],
-          ),
+            ),
+            ),
         ),
       ),
       bottomNavigationBar: const CustomFooter(),

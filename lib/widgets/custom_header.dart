@@ -26,7 +26,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu, size: 40),
             onPressed: () {
               final scaffoldState = Scaffold.maybeOf(context);
               if (scaffoldState != null && scaffoldState.hasEndDrawer) {

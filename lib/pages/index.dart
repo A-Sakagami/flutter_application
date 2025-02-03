@@ -60,30 +60,28 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
 
 
   Widget _buildGuestView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            'ワークフローツール',
-            style: const TextStyle(fontSize: 24, fontWeight:FontWeight.bold),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Text(
+          'ワークフローツール',
+          style: const TextStyle(fontSize: 24, fontWeight:FontWeight.bold),
+        ),
+        const SizedBox(height: 20), 
+        const Text(
+          'ログインしてください。',
+          style: TextStyle(fontSize: 16),
+        ),
+        const SizedBox(height: 20), // テキストとボタンの間にスペースを追加
+        ElevatedButton(
+          onPressed: () => Navigator.pushNamed(context, '/login'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue, // ボタンの背景色を青色に設定
+            shadowColor: Colors.blueAccent,
           ),
-          const SizedBox(height: 20), 
-          const Text(
-            'ログインしてください。',
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 20), // テキストとボタンの間にスペースを追加
-          ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/login'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue, // ボタンの背景色を青色に設定
-              shadowColor: Colors.blueAccent,
-            ),
-            child: const Text('ログイン', style: TextStyle(color: Colors.white),),
-          ),
-        ],
-      ),
+          child: const Text('ログイン', style: TextStyle(color: Colors.white),),
+        ),
+      ],
     );
   }
 
@@ -149,7 +147,7 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
           child: ListTile(
             title: Text(
               // 否認された場合、テキストで再投稿を促す
-                text.safeDenyed ? '否認されました。再投稿してください。\n${text.text}' : text.text ?? '',
+                text.safeDenyed ? '否認されました。このエリアをタップして再投稿してください。\n${text.text}' : text.text ?? '',
             ),
             textColor: text.safeApproved ? Colors.black : Colors.white,
             tileColor: text.safeApproved ? Colors.green

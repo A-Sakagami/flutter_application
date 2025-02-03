@@ -20,6 +20,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(fontSize: 18), // bodyのテキスト（大）
+          bodyMedium: TextStyle(fontSize: 16), // bodyのテキスト（中）
+          bodySmall: TextStyle(fontSize: 14), // bodyのテキスト（小）
+          headlineLarge: TextStyle(fontSize: 32), // 見出し（大） 
+          headlineMedium: TextStyle(fontSize: 24), // 見出し（大） 
+          headlineSmall: TextStyle(fontSize: 16), // 見出し（大） 
+        ),
+      ),
       //home: WorkflowToolScreen(),
       home: WorkflowToolScreen(),
       routes: {
