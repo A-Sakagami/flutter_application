@@ -18,6 +18,7 @@ class LoginPage extends StatefulWidget {
 /// 
 /// private: クラス名の先頭に"_"をつける
 /// public にしたくないなら、それを使うクラスやメソッドも全て private にする
+/// getter, setterのみpublicで扱う
 ///
 class LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
@@ -35,7 +36,7 @@ class LoginPageState extends State<LoginPage> {
 
   LoginPageState();
 
-@override
+  @override
   void initState() {
     super.initState();
     _loadData();
@@ -58,7 +59,7 @@ class LoginPageState extends State<LoginPage> {
     var userBox = await Hive.openBox<UserData>('userBox');
     UserData userData;
 
-    if (username == "admin" && password == "admin123") {
+    if (username == "admin" && password == "adminpass1234") {
       userData = UserData()
         ..username = username
         ..password = password
@@ -68,7 +69,7 @@ class LoginPageState extends State<LoginPage> {
       await _loadData(); // リストを更新
       if (mounted) Navigator.pushReplacementNamed(context, '/admin');
     } 
-    else if (username == "user" && password == "user123") {
+    else if (username == "user" && password == "userpass1234") {
       userData = UserData()
         ..username = username
         ..password = password

@@ -15,7 +15,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
           ModalRoute.of(context)?.settings.arguments as String? ?? "Workflow Tool",
           style: const TextStyle(
             color: Colors.black,
-            fontSize: 24,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
           ),
         ),

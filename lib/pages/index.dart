@@ -36,7 +36,7 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
   Future<void> _submitText() async {
     if (_textController.text.isNotEmpty) {
       // 新しいIDを生成（既存の最大IDに1を加える）
-      final newId = (_texts.isNotEmpty ? _texts.map((e) => e.id!).reduce((a, b) => a > b ? a : b) : 0) + 1;
+      final newId = (_texts.isNotEmpty ? _texts.map((e) => e.id!).reduce((before, edit) => before > edit ? before : edit) : 0) + 1;
       await StorageService.saveText(TextData(
         text: _textController.text,
         approved: false,

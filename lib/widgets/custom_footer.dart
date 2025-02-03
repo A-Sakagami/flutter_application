@@ -10,7 +10,7 @@ class CustomFooter extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: Text(
-          '© 2024 My Flutter App, A-Sakagami',
+          '© 2024 My Flutter App',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white),
         ),
