@@ -60,28 +60,36 @@ class WorkflowToolScreenState extends State<WorkflowToolScreen> {
 
 
   Widget _buildGuestView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Text(
-          'ワークフローツール',
-          style: const TextStyle(fontSize: 24, fontWeight:FontWeight.bold),
+    // Center ウィジェット: 中央揃え
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // 縦方向の中央揃え
+          crossAxisAlignment: CrossAxisAlignment.center, // 横方向の中央揃え
+          children: [
+            const SizedBox(height: 20),
+            Text(
+              'ワークフローツール',
+              style: const TextStyle(fontSize: 24, fontWeight:FontWeight.bold),
+            ),
+            const SizedBox(height: 20), 
+            const Text(
+              'ログインしてください。',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20), // テキストとボタンの間にスペースを追加
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, '/login'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue, // ボタンの背景色を青色に設定
+                shadowColor: Colors.blueAccent,
+              ),
+              child: const Text('ログイン', style: TextStyle(color: Colors.white),),
+            ),
+          ],
         ),
-        const SizedBox(height: 20), 
-        const Text(
-          'ログインしてください。',
-          style: TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 20), // テキストとボタンの間にスペースを追加
-        ElevatedButton(
-          onPressed: () => Navigator.pushNamed(context, '/login'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue, // ボタンの背景色を青色に設定
-            shadowColor: Colors.blueAccent,
-          ),
-          child: const Text('ログイン', style: TextStyle(color: Colors.white),),
-        ),
-      ],
+      ),
     );
   }
 

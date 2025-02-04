@@ -13,10 +13,12 @@ class AdminPage extends StatefulWidget {
   AdminPageState createState() => AdminPageState();
 }
 
-class AdminPageState extends State<AdminPage> {
-  final _formKey = GlobalKey<FormState>();
-  
-  // UserDataのフィールド
+class AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixin {
+  //final _formKey = GlobalKey<FormState>();
+  List<UserData> users = [];
+  List<TextData> texts = [];
+
+    // UserDataのフィールド
   String? username;
   String? password;
   bool isAdmin = false;
@@ -28,13 +30,12 @@ class AdminPageState extends State<AdminPage> {
   bool approved = false;
   bool denyed = false;
 
-  // 保存済みのデータ
-  List<UserData> users = [];
-  List<TextData> texts = [];
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 4, vsync: this);
     _loadData();
   }
 
@@ -60,162 +61,166 @@ class AdminPageState extends State<AdminPage> {
     }
   }
 
-  // Future<void> _saveTextData() async {
-  //   if (text != null) {
-  //     final textData = TextData(
-  //       text: text,
-  //       approved: approved,
-  //       denyed: denyed,
-  //       id: id,
-  //     );
-  //     await StorageService.saveText(textData);
-  //     await _loadData(); // リストを更新
-  //   }
-  // }
+  Widget _buildUserList() {
+    return Expanded( // ListView.builder を Expanded でラップ
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                final user = users[index];
+                return ListTile(
+                  title: Text(user.username ?? 'No name'),
+                  subtitle: Text('Admin: ${user.isAdmin}, Logged In: ${user.isLoggedIn}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () async {
+                      await StorageService.deleteUser(index);
+                      await _loadData();
+                    },
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserRegistrationForm() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ユーザー登録',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            TextFormField(
+              decoration: InputDecoration(labelText: 'user name'),
+              onChanged: (value) => setState(() => username = value),
+            ),
+            TextFormField(
+              decoration: InputDecoration(labelText: 'password'),
+              obscureText: true,
+              onChanged: (value) => setState(() => password = value),
+            ),
+            CheckboxListTile(
+              title: Text('管理者権限'),
+              value: isAdmin,
+              onChanged: (value) => setState(() => isAdmin = value ?? false),
+            ),
+            CheckboxListTile(
+              title: Text('ログイン情報'),
+              value: isLoggedIn,
+              onChanged: (value) => setState(() => isLoggedIn = value ?? false),
+            ),
+            ElevatedButton(
+              onPressed: _saveUserData,
+              child: Text('保存する'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserUpdate() {return Expanded(child: SizedBox(height: 20));}
+  Widget _buildUserDelete() {return Expanded(child: SizedBox(height: 20));}
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomHeader(),
-      endDrawer: const CustomDrawer(),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Container(
-          color: Color.fromARGB(200, 223, 223, 255),
-          padding: EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              
-              children: [
-                Text('管理者専用ページ', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-
-                SizedBox(height: 20),
-
-                Text('投稿された文字列', style: Theme.of(context).textTheme.titleLarge),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: texts.length,
-                  itemBuilder: (context, index) {
-                    final textData = texts[index];
-                    return ListTile(
-                      title: Text(textData.text?.isNotEmpty == true ? textData.text! : '投稿がありません'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('ID: ${textData.id}'),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(200, 136, 203, 127),
-                                  foregroundColor: Colors.white,
-                                ),
-                                onPressed: () async {
-                                if (textData.safeDenyed) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('承認と否認を同時に設定することはできません。')),
-                                  );
-                                  return;
-                                }
-                                setState(() {
-                                  textData.approved = !textData.safeApproved;
-                                });
-                                await StorageService.saveText(textData);
-                                await _loadData();
-                                },
-                                child: Text(textData.safeApproved ? '承認取り消し' : '承認'),
-                              ),
-                              SizedBox(width: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(200, 244, 67, 54),
-                                  foregroundColor: Colors.white,
-                                ),
-                                onPressed: () async {
-                                if (textData.safeApproved) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('承認と否認を同時に設定することはできません。')),
-                                  );
-                                  return;
-                                }
-                                setState(() {
-                                  textData.denyed = !textData.safeDenyed;
-                                });
-                                await StorageService.saveText(textData);
-                                await _loadData();
-                                },
-                            
-                                child: Text(textData.safeDenyed ? '否認取り消し' : '否認'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      /// ゴミ箱ボタン
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () async {
-                        await StorageService.deleteTextById(index);
-                        await _loadData();
-                        },
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20),
-                
-                Column(
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: const CustomHeader(),
+        endDrawer: const CustomDrawer(),
+        body: SingleChildScrollView( // スクロール可能にするために SingleChildScrollView を追加
+          child: Column(
+            children: [
+              Container(
+                color: Color.fromARGB(200, 223, 223, 255),
+                padding: EdgeInsets.all(16),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('ユーザー登録', style: Theme.of(context).textTheme.titleLarge),
-                    TextFormField(
-                      decoration: InputDecoration(labelText: 'user name'),
-                      onChanged: (value) => setState(() => username = value),
+                    Text(
+                      '管理者専用ページ',
+                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     ),
-                    TextFormField(
-                      decoration: InputDecoration(labelText: 'password'),
-                      obscureText: true,
-                      onChanged: (value) => setState(() => password = value),
-                    ),
-                    CheckboxListTile(
-                      title: Text('管理者権限'),
-                      value: isAdmin,
-                      onChanged: (value) => setState(() => isAdmin = value ?? false),
-                    ),
-                    CheckboxListTile(
-                      title: Text('ログイン情報'),
-                      value: isLoggedIn,
-                      onChanged: (value) => setState(() => isLoggedIn = value ?? false),
-                    ),
-                    ElevatedButton(
-                      onPressed: _saveUserData,
-                      child: Text('保存する'),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-              
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('保存済みのユーザー一覧', style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 20),
+                    Text('投稿された文字列', style: Theme.of(context).textTheme.titleLarge),
                     ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount: users.length,
+                      itemCount: texts.length,
                       itemBuilder: (context, index) {
-                        final user = users[index];
+                        final textData = texts[index];
                         return ListTile(
-                          title: Text(user.username ?? 'No name'),
-                          subtitle: Text('Admin: ${user.isAdmin}, Logged In: ${user.isLoggedIn}'),
+                          title: Text(textData.text?.isNotEmpty == true ? textData.text! : '投稿がありません'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('ID: ${textData.id}'),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color.fromARGB(200, 136, 203, 127),
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () async {
+                                      if (textData.safeDenyed) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('承認と否認を同時に設定することはできません。')),
+                                        );
+                                        return;
+                                      }
+                                      setState(() {
+                                        textData.approved = !textData.safeApproved;
+                                      });
+                                      await StorageService.saveText(textData);
+                                      await _loadData();
+                                    },
+                                    child: Text(textData.safeApproved ? '承認取り消し' : '承認'),
+                                  ),
+                                  SizedBox(width: 8),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color.fromARGB(200, 244, 67, 54),
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () async {
+                                      if (textData.safeApproved) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('承認と否認を同時に設定することはできません。')),
+                                        );
+                                        return;
+                                      }
+                                      setState(() {
+                                        textData.denyed = !textData.safeDenyed;
+                                      });
+                                      await StorageService.saveText(textData);
+                                      await _loadData();
+                                    },
+                                    child: Text(textData.safeDenyed ? '否認取り消し' : '否認'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                           trailing: IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () async {
-                              await StorageService.deleteUser(index);
+                              await StorageService.deleteTextById(index);
                               await _loadData();
                             },
                           ),
@@ -224,12 +229,38 @@ class AdminPageState extends State<AdminPage> {
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              // タブ要素
+              TabBar(
+                controller: _tabController,
+                labelColor: Colors.blue,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.blue,
+                tabs: const [
+                  Tab(child: Text("ユーザー一覧", style: TextStyle(fontSize: 16))),
+                  Tab(child: Text("ユーザー登録", style: TextStyle(fontSize: 16))),
+                  Tab(child: Text("ユーザー情報更新", style: TextStyle(fontSize: 16))),
+                  Tab(child: Text("ユーザー削除", style: TextStyle(fontSize: 16))),
+                ],
+              ),
+              Container( // Expanded を外してスクロール内に収める
+                height: 400, // 必要に応じて高さを調整
+                color: Colors.grey[200], // 背景色を設定
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildUserList(),
+                    _buildUserRegistrationForm(),
+                    _buildUserUpdate(),
+                    _buildUserDelete(),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
+        bottomNavigationBar: const CustomFooter(),
       ),
-      bottomNavigationBar: const CustomFooter(),
     );
   }
 }

@@ -74,7 +74,7 @@ class ContactPageState extends State<ContactPage>{
                     ),
                   );
                 },
-                child: Text('送信'),
+                child: Text('Send'),
               ),
             ],
           ),
