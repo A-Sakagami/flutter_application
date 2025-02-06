@@ -10,15 +10,15 @@ class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
 
   @override
-  AdminPageState createState() => AdminPageState();
+  State<AdminPage> createState() => _AdminPageState();
 }
 
-class AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixin {
-  //final _formKey = GlobalKey<FormState>();
+class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   List<UserData> users = [];
   List<TextData> texts = [];
 
-    // UserDataのフィールド
+  // UserDataのフィールド
   String? username;
   String? password;
   bool isAdmin = false;
@@ -30,22 +30,62 @@ class AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixi
   bool approved = false;
   bool denyed = false;
 
-  late TabController _tabController;
-
   @override
   void initState() {
     super.initState();
+    // TabController を初期化
     _tabController = TabController(length: 4, vsync: this);
     _loadData();
   }
 
+  @override
+  void dispose() {
+    // TabController を破棄
+    _tabController.dispose();
+    super.dispose();
+  }
+  
   Future<void> _loadData() async {
-    final loadedUsers = await StorageService.getAllUsers();
-    final loadedTexts = await StorageService.getAllTexts();
-    setState(() {
-      users = loadedUsers;
-      texts = loadedTexts;
-    });
+    try {
+      final loadedUsers = await StorageService.getAllUsers(); // ユーザー一覧を取得
+      final loadedTexts = await StorageService.getAllTexts(); // 投稿された文字列を取得
+
+      if (mounted) {
+        setState(() {
+          users = loadedUsers;
+          texts = loadedTexts;
+        });
+      }
+      // スクリプトまたはポップアップとして出力
+      showDialog(
+        // ignore: use_build_context_synchronously
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+        title: Text('データ読み込み完了'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+          Text('ユーザー数: ${users.length}'),
+          Text('投稿数: ${texts.length}'),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+        );
+      },
+    );
+    } catch (e) {
+      // エラーが発生した場合のログを追加
+      print("Error loading data: $e");
+    }
   }
 
   Future<void> _saveUserData() async {
@@ -127,17 +167,14 @@ class AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixi
     );
   }
 
-  Widget _buildUserUpdate() {return Expanded(child: SizedBox(height: 20));}
-  Widget _buildUserDelete() {return Expanded(child: SizedBox(height: 20));}
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 4, // DefaultTabController を追加
       child: Scaffold(
-        appBar: const CustomHeader(),
-        endDrawer: const CustomDrawer(),
-        body: Column(
+      appBar: const CustomHeader(),
+      endDrawer: const CustomDrawer(),
+      body: Column(
           children: [
             Container(
               color: Color.fromARGB(200, 223, 223, 255),
@@ -225,25 +262,49 @@ class AdminPageState extends State<AdminPage> with SingleTickerProviderStateMixi
               ),
             ),
             TabBar(
-              controller: _tabController,
+              isScrollable: true,
               labelColor: Colors.blue,
               unselectedLabelColor: Colors.grey,
               indicatorColor: Colors.blue,
               tabs: const [
-                Tab(child: Text("ユーザー一覧", style: TextStyle(fontSize: 16))),
-                Tab(child: Text("ユーザー登録", style: TextStyle(fontSize: 16))),
-                Tab(child: Text("ユーザー情報更新", style: TextStyle(fontSize: 16))),
-                Tab(child: Text("ユーザー削除", style: TextStyle(fontSize: 16))),
+                Tab(child: Text("ユーザー一覧")),
+                Tab(child: Text("ユーザー登録")),
+                Tab(child: Text("ユーザー更新")),
+                Tab(child: Text("ユーザー削除")),
               ],
             ),
-            Expanded( // Container ではなく Expanded に変更
+            Expanded(
               child: TabBarView(
-                controller: _tabController,
                 children: [
-                  _buildUserList(),
-                  _buildUserRegistrationForm(),
-                  _buildUserUpdate(),
-                  _buildUserDelete(),
+                  // ユーザー一覧
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: _buildUserList(),
+                    ),
+                  ),
+                  // ユーザー登録
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: _buildUserRegistrationForm(),
+                    ),
+                  ),
+                  // ユーザー更新
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(child: Text('ユーザー更新')),
+                    ),
+                  ),
+                  // ユーザー削除
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      
+                      child: Center(child: Text('未実装です。')),
+                    ),
+                  ),
                 ],
               ),
             ),
