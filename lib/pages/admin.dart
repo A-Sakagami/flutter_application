@@ -294,15 +294,28 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                   SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Center(child: Text('ユーザー更新')),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text('未実装です。'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   // ユーザー削除
                   SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      
-                      child: Center(child: Text('未実装です。')),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text('未実装です。'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
